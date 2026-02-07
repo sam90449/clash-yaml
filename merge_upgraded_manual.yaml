@@ -1,0 +1,118 @@
+mixed-port: 7890
+allow-lan: true
+mode: rule
+log-level: info
+ipv6: true
+external-controller: 127.0.0.1:9090
+dns:
+  enable: true
+  listen: 0.0.0.0:1053
+  ipv6: true
+  use-system-hosts: false
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  default-nameserver:
+  - 223.5.5.5
+  - 1.1.1.1
+  nameserver:
+  - https://dns.google/dns-query
+  - https://cloudflare-dns.com/dns-query
+  fallback:
+  - tls://1.1.1.1:853
+  - tls://8.8.8.8:853
+  fallback-filter:
+    geoip: true
+    geoip-code: US
+    ipcidr:
+    - 0.0.0.0/0
+  fake-ip-filter:
+  - +.lan
+  - +.local
+  - +.msftconnecttest.com
+  - +.msftncsi.com
+  - +.time.windows.com
+proxy-providers:
+  provider-a:
+    type: http
+    url: https://raw.githubusercontent.com/anaer/Sub/main/clash.yaml
+    interval: 3600
+    path: ./providers/provider-a.yaml
+    health-check:
+      enable: true
+      interval: 300
+      url: http://www.gstatic.com/generate_204
+  provider-b:
+    type: http
+    url: https://raw.githubusercontent.com/PuddinCat/BestClash/refs/heads/main/proxies.yaml
+    interval: 3600
+    path: ./providers/provider-b.yaml
+    health-check:
+      enable: true
+      interval: 300
+      url: http://www.gstatic.com/generate_204
+  provider-c:
+    type: http
+    url: https://raw.githubusercontent.com/dongchengjie/airport/refs/heads/main/subs/merged/tested_within.yaml
+    interval: 3600
+    path: ./providers/provider-c.yaml
+    health-check:
+      enable: true
+      interval: 300
+      url: http://www.gstatic.com/generate_204
+proxy-groups:
+- name: AUTO
+  type: url-test
+  use:
+  - provider-a
+  - provider-b
+  - provider-c
+  url: http://www.gstatic.com/generate_204
+  interval: 180
+  tolerance: 60
+- name: MANUAL
+  type: select
+  use:
+  - provider-a
+  - provider-b
+  - provider-c
+  proxies:
+  - AUTO
+  - DIRECT
+- name: PROXY
+  type: select
+  proxies:
+  - AUTO
+  - MANUAL
+  - DIRECT
+- name: Netflix
+  type: select
+  proxies:
+  - PROXY
+  - MANUAL
+  - AUTO
+  - DIRECT
+- name: OpenAI
+  type: select
+  proxies:
+  - PROXY
+  - MANUAL
+  - AUTO
+  - DIRECT
+rules:
+- DOMAIN-SUFFIX,netflix.net,Netflix
+- DOMAIN-SUFFIX,nflximg.com,Netflix
+- DOMAIN-SUFFIX,nflxsearch.net,Netflix
+- DOMAIN,api.openai.com,OpenAI
+- DOMAIN-SUFFIX,openaiapi-site.azureedge.net,OpenAI
+- DOMAIN-SUFFIX,auth0.com,OpenAI
+- DOMAIN-SUFFIX,openai.com,OpenAI
+- DOMAIN-SUFFIX,chatgpt.com,OpenAI
+- DOMAIN-SUFFIX,oaistatic.com,OpenAI
+- DOMAIN-SUFFIX,oaiusercontent.com,OpenAI
+- DOMAIN-SUFFIX,netflix.com,Netflix
+- DOMAIN-SUFFIX,nflximg.net,Netflix
+- DOMAIN-SUFFIX,nflxvideo.net,Netflix
+- DOMAIN-SUFFIX,nflxso.net,Netflix
+- DOMAIN-SUFFIX,nflxext.com,Netflix
+- DOMAIN,chat.openai.com,OpenAI
+- MATCH,PROXY
